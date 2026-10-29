@@ -1,0 +1,17 @@
+# WordPress core is not tracked; only wp-content customizations live here.
+/wp-admin/
+/wp-includes/
+/wp-*.php
+/index.php
+/license.txt
+/readme.html
+/xmlrpc.php
+wp-config.php
+
+wp-content/uploads/
+wp-content/upgrade/
+wp-content/cache/
+wp-content/debug.log
+
+.DS_Store
+.env
