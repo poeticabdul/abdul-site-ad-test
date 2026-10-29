@@ -1,22 +1,26 @@
 # Abdul Site
 
-A simple WordPress site. Only the custom code (`wp-content/`) is tracked; WordPress core is pulled in by Docker.
+A simple WordPress site structured for [WordPress VIP](https://docs.wpvip.com/wordpress-skeleton/).
 
 ## Structure
 
 ```
-wp-content/
-  themes/abdul-site/     # Lightweight block theme (theme.json + HTML templates)
-  mu-plugins/            # Auto-activates the theme
-docker-compose.yml       # Local WordPress + MariaDB
+themes/abdul-site/     # Lightweight block theme (theme.json + HTML templates)
+client-mu-plugins/     # Always-on plugins (auto-activates the theme)
+plugins/               # Regular plugins
+vip-config/            # vip-config.php, loaded before WordPress
+images/ languages/ private/
 ```
 
-## Run locally
+WordPress core and VIP's own `mu-plugins` are provided by the platform and are not tracked.
+
+## Local development
+
+Requires [VIP CLI](https://docs.wpvip.com/vip-cli/) and Docker.
 
 ```bash
-docker compose up -d
+vip dev-env create --slug=abdul-site --app-code=. --title="Abdul Site"
+vip dev-env start --slug=abdul-site
 ```
 
-Open http://localhost:8080 and complete the WordPress installer. The `abdul-site` theme is activated automatically.
-
-Stop with `docker compose down` (add `-v` to wipe the database).
+Then open the URL printed by `vip dev-env info --slug=abdul-site`. The `abdul-site` theme is activated automatically.
