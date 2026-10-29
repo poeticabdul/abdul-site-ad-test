@@ -1,0 +1,59 @@
+name: Deploy to VIP
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: vip-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      WPVIP_DEPLOY_TOKEN: ${{ secrets.WPVIP_DEPLOY_TOKEN }}
+      # Override with repository variables VIP_APP / VIP_ENV if needed.
+      VIP_APP: ${{ vars.VIP_APP || '12723' }}
+      VIP_ENV: ${{ vars.VIP_ENV || 'develop' }}
+      DO_NOT_TRACK: "1"
+    steps:
+      - name: Check deploy token
+        id: token
+        run: |
+          if [ -z "$WPVIP_DEPLOY_TOKEN" ]; then
+            echo "::warning::WPVIP_DEPLOY_TOKEN secret is not set; skipping deploy."
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.token.outputs.ok == 'true'
+
+      - uses: actions/setup-node@v4
+        if: steps.token.outputs.ok == 'true'
+        with:
+          node-version: 22
+
+      - name: Install VIP CLI
+        if: steps.token.outputs.ok == 'true'
+        run: npm install -g @automattic/vip
+
+      - name: Build archive
+        if: steps.token.outputs.ok == 'true'
+        run: git archive --format=zip --prefix=abdul-site/ -o abdul-site.zip HEAD
+
+      - name: Validate archive
+        if: steps.token.outputs.ok == 'true'
+        run: vip app deploy validate abdul-site.zip
+
+      - name: Deploy
+        if: steps.token.outputs.ok == 'true'
+        run: |
+          vip app deploy abdul-site.zip \
+            --app "$VIP_APP" \
+            --env "$VIP_ENV" \
+            --skip-confirmation \
+            --message "${GITHUB_SHA::7}: $(git log -1 --pretty=%s)"
